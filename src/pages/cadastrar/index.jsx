@@ -15,15 +15,16 @@ import { api } from '../../services/api'
 
 const schema = yup
   .object({
-    name: yup.string().min(8, 'deve conter mais de 8 caracteres').required('nome requerido'),
-    email: yup.string().email('Email inválido!').required('email requerida'),
-    password: yup.string().min(8, 'deve conter mais de 8 caracteres!').required('email requerida'),
+    name: yup.string().required('nome requerido'),
+    email: yup.string().email('Email inválido!').required('email requerido'),
+    password: yup.string().min(8, 'deve conter mais de 8 caracteres!').required('senha requerida'),
   })
   .required()
 
 
 const Register = () => {
   const navigate = useNavigate()
+
   const { control, handleSubmit, watch, formState: { errors, isValid } } = useForm({
     resolver: yupResolver(schema),
     mode: 'onChange',
@@ -31,36 +32,48 @@ const Register = () => {
 
   const onSubmit = async formdata => {
 
-    const { users } = await api.post(`/users`)
+    const { data } = await api.get(`/users`);
+    
     let newUser = {}
-    try {
+  
+     try {
 
-      if (users.length > 0) {
-        newUser = {
-          id: (users.length + 1),
-          name: formdata.fullName,
-          email: formdata.email,
-          password: formdata.password
-        }
-      }
-      newUser = {
-        id: 1,
-        name: formdata.fullName,
-        email: formdata.email,
-        password: formdata.password
-      }
+       if (data.length > 0) {
 
-      await api.post(`/users`, newUser)
-        .then((response) => {
-          console.log('Dados adicionados com sucesso:', response.data);
-        })
-        .catch((error) => {
-          console.error('Erro ao adicionar dados:', error);
-        });
+          if(data.some((elem)=> elem.email === formdata.email)){
+            console.log("Email existente!");
+            return
+          }else{
+          newUser = {
+           id: (data.length + 1),
+           name: formdata.name,
+           email: formdata.email,
+           password: formdata.password}
+         
+         }
+       }else{
+         newUser = {
+           id: 1,
+           name: formdata.name,
+           email: formdata.email,
+           password: formdata.password
+          }
+       }
 
-    } catch (error) {
-      console.log(error.message);
-    }
+       console.log(newUser.name);
+       await api.post(`/users`, newUser)
+         .then((response) => {
+           console.log('Dados adicionados com sucesso:', response.data);
+         })
+         .catch((error) => {
+           console.error('Erro ao adicionar dados:', error);
+         });
+
+     } catch (error) {
+       console.log(error.message);
+     } finally{
+      
+     }
   };
 
   return (
@@ -82,6 +95,8 @@ const Register = () => {
             <form onSubmit={handleSubmit(onSubmit)}>
 
               <Input
+                errorMessage={errors?.name?.message}
+
                 name="name"
                 control={control}
                 placeholder="Nome completo"
@@ -94,12 +109,12 @@ const Register = () => {
                 leftIcon={<MdEmail color='#8647AD' />} />
 
               <Input
-                errorMessage={errors?.email?.message}
+                errorMessage={errors?.password?.message}
                 name="password" control={control}
                 placeholder="Senha" type="password"
                 leftIcon={<MdLock color='#8647AD' />} />
 
-              <Button title={"Criar minha conta"} variant='secondary' />
+              <Button title={"Criar minha conta"} variant='secondary' type='submit' />
 
               <SubTitleResgister>
                 Ao clicar em "criar minha conta grátis",

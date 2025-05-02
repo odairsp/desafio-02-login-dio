@@ -38,6 +38,8 @@ const Login = () => {
             console.log(data);
             if (data.length === 1) {
                 navigate('/feed');
+            }else{
+                console.log("");
             }
 
         } catch (error) {
